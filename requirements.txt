@@ -1,5 +1,6 @@
 streamlit
 plotly
+scikit-learn
 pandas
 numpy
 # modul lain yang Anda gunakan
