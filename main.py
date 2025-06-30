@@ -29,7 +29,7 @@ def load_data():
     try:
         df = pd.read_csv("water_potability_balanced.csv")
     except FileNotFoundError:
-        st.error("Pastikan file 'water_potability.csv' berada di direktori yang sama dengan aplikasi.")
+        st.error("Pastikan file 'water_potability_balanced.csv' berada di direktori yang sama dengan aplikasi.")
         st.stop() # Stop the app if the file is not found
     return df
 
@@ -50,15 +50,19 @@ else:
 # Ensure 'Potability' column is integer type after imputation if it becomes float
 df_imputed['Potability'] = df_imputed['Potability'].astype(int)
 
+# --- Definisi Fitur yang Digunakan untuk Model ---
+# Changed: Selected features for the model
+selected_features = ['Hardness', 'Solids', 'Chloramines', 'Conductivity', 'Organic_carbon']
+
 # Split features (X) and target (y)
-X = df_imputed.drop('Potability', axis=1)
+X = df_imputed[selected_features] # Only use the selected features
 y = df_imputed['Potability']
 
 # --- Bagian 1: Gambaran Umum Data ---
 if analysis_type == "Gambaran Umum Data":
     st.header("Gambaran Umum Dataset")
     st.write("Berikut adalah 5 baris pertama dari dataset Anda:")
-    st.dataframe(df.head())
+    st.dataframe(df.head()) # Show original df head
 
     st.write("Bentuk Dataset (Jumlah Baris, Jumlah Kolom):", df.shape)
 
@@ -85,10 +89,12 @@ elif analysis_type == "Analisis Data Eksplorasi (EDA)":
     st.header("Analisis Data Eksplorasi (EDA)")
     st.write("Visualisasikan distribusi fitur-fitur penting dalam dataset.")
 
-    feature_columns = X.columns.tolist()
+    # Changed: Only allow selection from the original full columns for EDA
+    # This allows users to still explore all features even if only a subset is used for the model
+    full_feature_columns = df_imputed.drop('Potability', axis=1).columns.tolist()
     selected_feature = st.selectbox(
         "Pilih Fitur untuk Visualisasi Distribusi:",
-        feature_columns
+        full_feature_columns
     )
 
     if selected_feature:
@@ -102,7 +108,7 @@ elif analysis_type == "Analisis Data Eksplorasi (EDA)":
         st.subheader(f"Scatter Plot: {selected_feature} vs. Fitur Lain")
         selected_feature_y = st.selectbox(
             "Pilih Fitur Y untuk Scatter Plot:",
-            [col for col in feature_columns if col != selected_feature]
+            [col for col in full_feature_columns if col != selected_feature]
         )
         if selected_feature_y:
             fig_scatter = px.scatter(df_imputed, x=selected_feature, y=selected_feature_y,
@@ -113,6 +119,7 @@ elif analysis_type == "Analisis Data Eksplorasi (EDA)":
             st.plotly_chart(fig_scatter, use_container_width=True)
 
     st.subheader("Heatmap Korelasi Antar Fitur")
+    # Changed: Show correlation for all features in EDA, not just selected
     corr_matrix = df_imputed.corr()
     fig_corr = px.imshow(
         corr_matrix,
@@ -127,7 +134,7 @@ elif analysis_type == "Analisis Data Eksplorasi (EDA)":
 # --- Bagian 3: Prediksi Potabilitas Air ---
 elif analysis_type == "Prediksi Potabilitas Air":
     st.header("Prediksi Potabilitas Air")
-    st.write("Model Machine Learning (Random Forest Classifier) akan dilatih untuk memprediksi potabilitas air.")
+    st.write("Model Machine Learning (Random Forest Classifier) akan dilatih untuk memprediksi potabilitas air menggunakan fitur-fitur terpilih.")
 
     # Model Training
     st.subheader("Pelatihan Model")
@@ -164,10 +171,10 @@ elif analysis_type == "Prediksi Potabilitas Air":
     # User Input for Prediction
     st.subheader("Masukkan Nilai Air untuk Prediksi")
 
-    # Create input fields dynamically based on features
+    # Changed: Create input fields ONLY for the selected features
     input_data = {}
-    for column in X.columns:
-        # Get min and max for slider, if applicable
+    for column in selected_features: # Iterate only over selected features
+        # Get min and max for slider, if applicable from the original full dataframe
         min_val = float(df_imputed[column].min())
         max_val = float(df_imputed[column].max())
         mean_val = float(df_imputed[column].mean())
@@ -196,7 +203,7 @@ elif analysis_type == "Prediksi Potabilitas Air":
         # Create a DataFrame from the input data
         input_df = pd.DataFrame([input_data])
         
-        # Ensure the order of columns matches X_train/X
+        # Ensure the order of columns matches X_train/X (which now only contains selected_features)
         input_df = input_df[X.columns]
 
         # Predict using the trained model
