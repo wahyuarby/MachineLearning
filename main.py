@@ -27,7 +27,7 @@ analysis_type = st.sidebar.radio(
 def load_data():
     # Attempt to load the data from the accessible file name
     try:
-        df = pd.read_csv("water_potability.csv")
+        df = pd.read_csv("water_potability_balanced.csv")
     except FileNotFoundError:
         st.error("Pastikan file 'water_potability.csv' berada di direktori yang sama dengan aplikasi.")
         st.stop() # Stop the app if the file is not found
@@ -212,7 +212,7 @@ elif analysis_type == "Prediksi Potabilitas Air":
         st.write(f"Probabilitas Layak Minum: **{prediction_proba[0][1]*100:.2f}%**")
         st.write(f"Probabilitas Tidak Layak Minum: **{prediction_proba[0][0]*100:.2f}%**")
         st.markdown("""
-        <div style="background-color:#e0f7fa; padding:10px; border-radius:5px;">
+        <div style="background-color:blue; padding:10px; border-radius:5px;">
             <p><strong>Catatan:</strong> Prediksi ini didasarkan pada model yang dilatih dari data yang tersedia. Selalu konsultasikan dengan ahli atau lakukan pengujian lebih lanjut untuk keputusan kritis terkait kualitas air.</p>
         </div>
         """, unsafe_allow_html=True)
