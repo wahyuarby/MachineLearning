@@ -1,0 +1,5 @@
+streamlit
+plotly
+pandas
+numpy
+# modul lain yang Anda gunakan
